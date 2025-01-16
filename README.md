@@ -121,3 +121,120 @@ If successful, you should be logged into each server without entering a password
 
  - Check UFW rules: ``sudo ufw status``
  - Allow SSH: ``sudo ufw allow ssh``
+
+
+
+# Ansible Installation Guide on WSL (with Virtual Environment)
+
+This guide explains how to install Ansible on your Windows 11 machine using WSL, with a Python virtual environment for better package management.
+
+## Step 1: Update WSL and Install Dependencies
+
+1. Open your WSL terminal.
+
+2. Update the package list and install dependencies:
+```
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-pip python3-venv git sshpass
+```
+
+## Step 2: Set Up Python Virtual Environment
+
+1. Create a directory for Ansible projects:
+```
+mkdir -p ~/ansible-webcluster
+cd ~/ansible-webcluster
+```
+2. Create a Python virtual environment:
+
+``python3 -m venv venv``
+
+3. Activate the virtual environment:
+
+``source venv/bin/activate``
+
+Note: When the environment is active, (venv) appears at the start of your terminal prompt.
+
+4. Upgrade pip:
+
+``pip install --upgrade pip``
+
+## Step 3: Install Ansible in Virtual Environment
+
+1. Install Ansible:
+
+``pip install ansible``
+
+2. Verify the installation:
+
+``ansible --version``
+
+You should see output like:
+```
+ansible [core X.X.X]
+  python version = 3.X.X
+```
+## Step 4: Configure Ansible
+
+ - Create the Ansible configuration file:
+``touch ansible.cfg``
+
+ - Add the following configuration to ansible.cfg:
+```
+[defaults]
+inventory = ./inventory.yml
+host_key_checking = False
+retry_files_enabled = False
+```
+## Step 5: Set Up Ansible Inventory
+
+1. Create the inventory folder and file:
+```
+touch inventory.yml
+```
+2. Add your servers to ``inventory.yml``:
+```
+---
+all:
+  children:
+    webservers:
+      hosts:
+        web1:
+          ansible_host: 192.168.1.230
+          ansible_user: root
+        web2:
+          ansible_host: 192.168.1.231
+          ansible_user: root
+
+    loadbalancer:
+      hosts:
+        lb1:
+          ansible_host: 192.168.1.232
+          ansible_user: root
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+```
+3. Test the connection to all servers:
+``ansible -i inventory.yml all -m ping``
+You should see SUCCESS messages from each server.
+
+## Step 6: Managing the Virtual Environment
+
+Activate the virtual environment:
+``source ~/ansible-webcluster/venv/bin/activate``
+
+Deactivate the virtual environment:
+``deactivate``
+
+## Troubleshooting
+
+ - Issue: ansible: command not found
+     - Fix: Ensure the virtual environment is activated: source venv/bin/activate
+
+ - Issue: SSH permissions error
+     - Fix: Set proper permissions on your SSH keys:
+```
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
