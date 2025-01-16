@@ -238,3 +238,52 @@ Deactivate the virtual environment:
 chmod 700 ~/.ssh
 chmod 600 ~/.ssh/authorized_keys
 ```
+
+
+# What is what ?
+
+📂 inventory/
+
+Contains Ansible inventory files that list target servers and machine groups.
+
+    hosts.ini → Defines host groups (webservers, loadbalancer) and IP addresses.
+    📌 Purpose: Informs Ansible which machines to configure.
+
+📂 group_vars/
+
+Stores global and group-specific variables for servers.
+
+    all.yml → Variables common to all machines.
+    webservers.yml → Variables specific to Nginx servers.
+    loadbalancer.yml → Variables specific to the HAProxy server.
+
+📌 Purpose: Centralize configuration with variables to simplify management.
+
+📂 roles/
+
+Organizes Ansible roles to structure tasks in a reusable way.
+
+    nginx/ → Role for installing, configuring Nginx, and deploying the test web page.
+    haproxy/ → Role for installing and configuring HAProxy.
+
+📌 Purpose: Organize code into reusable blocks based on functionality.
+
+📁 Role Structure
+
+Each role follows a standard structure:
+
+    tasks/ → Actions to execute (installation, configuration).
+    templates/ → Template files (.j2) customized with variables.
+    handlers/ → Actions triggered upon changes (e.g., restarting a service).
+
+📂 playbooks/
+
+Contains playbooks that orchestrate roles and tasks.
+
+    webservers.yml → Deploys and configures Nginx on web servers.
+    loadbalancer.yml → Configures HAProxy on the load balancer server.
+    site.yml → Global playbook that runs both of the above.
+
+📌 Purpose: Automate the full deployment of the infrastructure.
+
+
