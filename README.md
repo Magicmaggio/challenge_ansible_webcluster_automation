@@ -1,130 +1,123 @@
-# ansible-webcluster-automation
-Ce challenge a pour objectif de te faire manipuler :
+# Infrastructure Overview
 
- - Ansible (playbooks, inventaires, rôles)
- - Configuration de serveurs web
- - Gestion de la haute disponibilité
+**Control Machine**: Windows 11 with WSL installed // IP: 192.168.1.68
 
+**Web Server 1** (web1): Debian 12 // IP: 192.168.1.230
 
-## Getting started
-Voici les ressources qui vont te permettre de démarrer :
+**Web Server 2** (web2): Debian 12 // IP: 192.168.1.231
 
- - Documentation Ansible
- - Documentation du module Ansible nginx
- - Documentation HAProxy
-
-Pour réaliser ce challenge, il te faut :
-
- - 3 machines (VMs ou LXC) sous Debian 12
- - Un accès SSH root ou sudo sur ces machines
- - Ansible installé sur ta machine de contrôle
- - Un accès Internet sur toutes les machines
-
-Si tu n'as pas tout ce qu'il faut pour bien démarrer, n'hésite pas à te rapprocher de ton formateur.
-Une fois que tu te sens d'attaque, tu peux démarrer ce challenge. Tu peux prendre connaissance de l'objectif ci-dessous.
-Bonne pratique !
-
-## Contexte
-Tu es administrateur système junior dans une entreprise de services numériques (ESN). Un nouveau client, une agence web en pleine croissance, souhaite moderniser son infrastructure d'hébergement.
-Actuellement, ils hébergent tous leurs sites web clients sur un unique serveur Apache, ce qui pose des problèmes de performances et de disponibilité. Ils souhaitent migrer vers une architecture plus robuste.
-Ton responsable te confie la mission de créer une configuration Ansible réutilisable pour déployer un cluster de serveurs web avec répartition de charge.
-
-## Objectifs
-L'architecture cible doit comprendre :
-
- - 2 serveurs web nginx identiques
- - 1 serveur HAProxy pour la répartition de charge
- - Une page web de test simple pour valider le fonctionnement
-
-Le client souhaite pouvoir réutiliser ta configuration pour déployer rapidement cette architecture dans différents environnements (développement, recette, production).
-Il attend donc de toi, sur un dépôt gitlab que tu lui remettras à la fin de ta mission :
+**Load Balancer** (lb1): Debian 12 // IP: 192.168.1.232
 
 
- - Une documentation en anglais au format markdown expliquant :
-     - L'architecture mise en place
-     - Les prérequis nécessaires
-     - La procédure d'utilisation des playbooks
-     - Les choix techniques effectués
+# SSH Setup: Connecting from Windows 11 (WSL) to Debian 12 Servers
 
+This guide explains how to set up a secure SSH connection from your Windows 11 machine (with WSL) to your Debian 12 servers.
 
+## Step 1: Install OpenSSH Client on WSL
 
-**Un inventaire Ansible d'exemple**
- - Des playbooks Ansible pour :
+1. Open WSL (Ubuntu or any other distribution).
 
-     - Installer et configurer nginx sur les serveurs web
-     - Installer et configurer HAProxy sur le load balancer
-     - Déployer une page web de test
+2. Verify SSH installation:
 
- - Des rôles Ansible bien structurés et réutilisables
+``ssh -V``
 
- - Des tests basiques pour valider le bon fonctionnement
+3. If not installed, run:
 
+``sudo apt update && sudo apt install -y openssh-client``
 
-## Structure attendue
+## Step 2: Generate SSH Keys
+
+1. Generate an SSH key pair:
+
+``ssh-keygen -t rsa -b 4096 -C "your_email@example.com"``
+
+2. Press Enter to accept the default file location (/home/your_user/.ssh/id_rsa). Or name it, up to you.
+
+3. Enter a passphrase (optional but recommended) or leave it empty.
+
+4. Verify the generated keys:
+
+``ls ~/.ssh``
+
+You should see (or the name you gave):
+
+ - id_rsa (private key)
+ - id_rsa.pub (public key)
+
+## Step 3: Configure SSH Access on Debian Servers
+
+**3.1** Install OpenSSH Server (if not already installed)
+
+Run this command on each Debian server (web1, web2, lb1):
+
+``sudo apt update && sudo apt install -y openssh-server``
+
+**3.2** Enable and Start SSH Service
 ```
-ansible-webcluster/
-├── README.md
-├── inventory/
-│   └── hosts.ini
-├── group_vars/
-│   ├── all.yml
-│   ├── webservers.yml
-│   └── loadbalancer.yml
-├── roles/
-│   ├── nginx/
-│   └── haproxy/
-└── playbooks/
-    ├── site.yml
-    ├── webservers.yml
-    └── loadbalancer.yml
+sudo systemctl enable ssh
+sudo systemctl start ssh
 ```
-## Critères d'évaluation  
-Ta solution sera évaluée sur :
+**3.3** Allow SSH in Firewall (if UFW is enabled)
+```
+sudo ufw allow ssh
+sudo ufw enable
+sudo ufw status
+```
+## Step 4: Copy SSH Public Key to Debian Servers
 
-1. Fonctionnalité :
+**4.1** Use ssh-copy-id
 
-La configuration fonctionne en suivant la documentation
-Le cluster web est opérationnel
-La répartition de charge est effective
+Run these commands from your WSL terminal to copy your public key to each server:
+```
+ssh-copy-id root@192.168.1.230  # web1
+ssh-copy-id root@192.168.1.231  # web2
+ssh-copy-id root@192.168.1.232  # lb1
+```
+Note: If ssh-copy-id is not available, install it:
 
+``sudo apt install -y sshpass``
 
-2. Qualité du code :
+**4.2** Manual Alternative (if needed)
 
-Les rôles sont bien structurés
-Le code est commenté et lisible
-Les bonnes pratiques Ansible sont respectées
+1. Display your public key:
 
+``cat ~/.ssh/id_rsa.pub``
 
-3. Documentation :
+2. On each Debian server, append the public key:
+```
+echo "<your-public-key>" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
 
-Claire et complète
-En anglais
-Contient des exemples
+## Step 5: Test SSH Connection
 
+1. Connect to web1:
 
-4. Maintenabilité :
+``ssh root@192.168.1.230``
 
-Configuration réutilisable
-Variables bien organisées
-Structure de projet claire
+2. Connect to web2:
 
+``ssh root@192.168.1.231``
 
+3. Connect to lb1:
 
+``ssh root@192.168.1.232``
 
-## Bonus (optionnels)
-Si tu as terminé les objectifs principaux, tu peux améliorer ta solution avec :
+If successful, you should be logged into each server without entering a password.
 
- - Un certificat SSL auto-signé
- - Une surveillance basique avec nginx status
- - Des tests automatisés avec Ansible Molecule
- - Une gestion des sauvegardes de configuration
+## Troubleshooting Tips
 
+ - Permission Denied:
 
-## Conseils
+     - Verify file permissions: ``chmod 700 ~/.ssh and chmod 600 ~/.ssh/authorized_keys.``
+     - Restart SSH: ``sudo systemctl restart ssh.``
 
-Commence par faire un plan de ton architecture
-Teste d'abord manuellement les configurations
-Découpe ton travail en petites étapes
-Utilise git dès le début du projet
-Teste régulièrement tes playbooks
-Documente au fur et à mesure
+ - SSH Service Not Running:
+
+     - Check status: ``sudo systemctl status ssh``
+     - Start if inactive: ``sudo systemctl start ssh``
+
+ - Firewall Blocking SSH:
+
+ - Check UFW rules: ``sudo ufw status``
+ - Allow SSH: ``sudo ufw allow ssh``
