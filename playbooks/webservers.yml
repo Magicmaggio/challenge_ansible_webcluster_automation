@@ -1,0 +1,7 @@
+---
+- name: Set up Web Servers
+  hosts: webservers
+  become: true
+
+  roles:
+    - nginx

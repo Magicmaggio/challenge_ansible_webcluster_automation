@@ -1,0 +1,4 @@
+haproxy_frontend_port: 80
+haproxy_backend_servers:
+  - { name: web1, address: 192.168.1.230, port: 80 }
+  - { name: web2, address: 192.168.1.231, port: 80 }

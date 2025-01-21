@@ -1,0 +1,6 @@
+---
+- name: Configure Web Servers
+  import_playbook: playbooks/webservers.yml
+
+- name: Configure Load Balancer
+  import_playbook: playbooks/loadbalancer.yml
