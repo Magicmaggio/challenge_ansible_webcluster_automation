@@ -182,7 +182,8 @@ ansible [core X.X.X]
  - Add the following configuration to ansible.cfg:
 ```
 [defaults]
-inventory = ./inventory.yml
+inventory = inventory/inventory.yml
+roles_path = roles/
 host_key_checking = False
 retry_files_enabled = False
 ```
@@ -202,15 +203,18 @@ all:
         web1:
           ansible_host: 192.168.1.230
           ansible_user: root
+          ansible_ssh_private_key_file: /home/maggio/.ssh/challenge_ansible_webcluster_ssh_key
         web2:
           ansible_host: 192.168.1.231
           ansible_user: root
+          ansible_ssh_private_key_file: /home/maggio/.ssh/challenge_ansible_webcluster_ssh_key
 
     loadbalancer:
       hosts:
         lb1:
           ansible_host: 192.168.1.232
           ansible_user: root
+          ansible_ssh_private_key_file: /home/maggio/.ssh/challenge_ansible_webcluster_ssh_key
 
   vars:
     ansible_python_interpreter: /usr/bin/python3
