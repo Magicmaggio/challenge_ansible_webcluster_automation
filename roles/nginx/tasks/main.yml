@@ -13,7 +13,7 @@
   ansible.builtin.template:
     src: index.html.j2
     dest: /var/www/html/index.html
-  notify: 
+  notify:
     - Reload Nginx
 
 - name: Start and enable Nginx
@@ -22,13 +22,22 @@
     state: started
     enabled: yes
 
+- name: Create SSL directory
+  ansible.builtin.file:
+    path: /etc/nginx/ssl
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Generate SSL key and certificate
   ansible.builtin.command: >
     openssl req -new -newkey rsa:2048 -days 365 -nodes -x509
     -keyout /etc/nginx/ssl/nginx-selfsigned.key
     -out /etc/nginx/ssl/nginx-selfsigned.crt
-    -subj "/CN=example.com"
-  creates: /etc/nginx/ssl/nginx-selfsigned.crt
+    -subj "/CN=maggio.com"
+  args:
+    creates: /etc/nginx/ssl/nginx-selfsigned.crt
 
 - name: Configure SSL in Nginx
   ansible.builtin.template:
@@ -40,19 +49,18 @@
   notify:
     - Reload Nginx
 
-
-- name: Enable Nginx status
-  ansible.builtin.lineinfile:
-    path: /etc/nginx/conf.d/status.conf
-    line: |
-      server {
-          listen 80;
-          location /nginx_status {
-              stub_status;
-              allow 127.0.0.1;
-              deny all;
-          }
-      }
-    create: yes
+- name: Deploy Nginx status configuration
+  ansible.builtin.template:
+    src: status.conf.j2
+    dest: /etc/nginx/conf.d/status.conf
+    owner: root
+    group: root
+    mode: 0644
   notify:
     - Reload Nginx
+
+- name: Validate Nginx configuration
+  ansible.builtin.command: nginx -t
+  register: nginx_config_test
+  changed_when: false
+  failed_when: nginx_config_test.rc != 0
