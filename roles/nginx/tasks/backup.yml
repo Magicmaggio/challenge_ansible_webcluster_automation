@@ -1,0 +1,13 @@
+- name: Create backup directory
+  ansible.builtin.file:
+    path: /backup/nginx
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Backup Nginx configuration
+  ansible.builtin.copy:
+    src: /etc/nginx/
+    dest: /backup/nginx/
+    remote_src: yes

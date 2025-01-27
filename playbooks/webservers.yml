@@ -5,3 +5,7 @@
 
   roles:
     - nginx
+
+- include_role:
+    name: nginx
+    tasks_from: backup.yml
