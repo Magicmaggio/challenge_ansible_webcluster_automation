@@ -13,9 +13,10 @@ defaults
     timeout server  50000
 
 frontend http_front
-    bind *:80
+    bind *:{{ haproxy_frontend_port }}
     default_backend webservers
 
 backend webservers
-    server web1 192.168.1.230:80 check
-    server web2 192.168.1.231:80 check
+{% for server in haproxy_backend_servers %}
+    server {{ server.name }} {{ server.address }}:{{ server.port }} check
+{% endfor %}
