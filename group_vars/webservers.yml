@@ -1,2 +1,2 @@
-nginx_port: 80
-#web_content: "Welcome to the Nginx Maggio Web Server!"
+nginx_port: "80"
+web_content: "Welcome to Maggio's Nginx Web Server!"

@@ -1,0 +1,5 @@
+# Variables for all
+ansible_connection: ssh
+ansible_python_interpreter: /usr/bin/python3
+default_nginx_port: "8080" # Used only if nginx_port is not defined
+default_web_content: "Default Web Content - Update me!"

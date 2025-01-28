@@ -11,7 +11,7 @@
 
 - name: Deploy custom index.html
   ansible.builtin.template:
-    src: index.html.j2
+    src: templates/index.html.j2
     dest: /var/www/html/index.html
   notify:
     - Reload Nginx
